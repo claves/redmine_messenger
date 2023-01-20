@@ -19,7 +19,7 @@ module RedmineMessenger
 
           if Messenger.setting_for_project project, :messenger_direct_users_messages
             messenger_to_be_notified.each do |user|
-              channels.append "@#{user.login}" unless user == author
+              channels.append get_slack_mention_code(user) unless user == author
             end
           end
 
@@ -78,7 +78,7 @@ module RedmineMessenger
 
           if Messenger.setting_for_project project, :messenger_direct_users_messages
             messenger_to_be_notified.each do |user|
-              channels.append "@#{user.login}" unless user == current_journal.user
+              channels.append get_slack_mention_code(user) unless user == current_journal.user
             end
           end
 
@@ -134,6 +134,16 @@ module RedmineMessenger
           else
             "<#{Messenger.object_url self}#change-#{current_journal.id}|#{Messenger.markup_format self}>#{mention_to}"
           end
+        end
+
+        def get_slack_mention_code(user)
+          slack_mention_user_code = "@#{user.login}"
+
+          ucf_slack_user_id = UserCustomField.find_by_name("Slack User ID")
+          ucv_slack_user_id = user.custom_value_for(ucf_slack_user_id)
+          slack_mention_user_code = "<@#{ucv_slack_user_id.value}>" unless ucv_slack_user_id.nil?
+
+          return slack_mention_user_code
         end
       end
     end

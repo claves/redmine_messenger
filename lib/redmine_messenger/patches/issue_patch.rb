@@ -141,7 +141,7 @@ module RedmineMessenger
 
           ucf_slack_user_id = UserCustomField.find_by_name("Slack User ID")
           cfv_slack_user_id = user.custom_field_value(ucf_slack_user_id)
-          slack_mention_user_code = "<@#{ucv_slack_user_id.value}>" unless ucv_slack_user_id.blank?
+          slack_mention_user_code = "<@#{cfv_slack_user_id}>" unless cfv_slack_user_id.blank?
 
           return slack_mention_user_code
         end

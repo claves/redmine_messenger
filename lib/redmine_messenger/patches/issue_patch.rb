@@ -99,7 +99,7 @@ module RedmineMessenger
             fields = current_journal.details.map { |d| Messenger.detail_to_field d, project }
             if current_journal.notes.present?
               fields << { title: I18n.t(:label_comment),
-                          value: Messenger.markup_format(current_journal.notes),
+                          value: build_mentions(Messenger.markup_format(current_journal.notes)),
                           short: false }
             end
             fields << { title: I18n.t(:field_is_private), short: true } if current_journal.private_notes?
@@ -144,6 +144,51 @@ module RedmineMessenger
           slack_mention_user_code = "<@#{cfv_slack_user_id}>" unless cfv_slack_user_id.blank?
 
           return slack_mention_user_code
+        end
+
+        def build_mentions(text)
+          # Retrieve the mentioned Redmine usernames from the given text
+          mentioned_usernames = extract_usernames text
+
+          # Slack usernames to be mentioned
+          slack_user_mention_codes = to_slack_usernames(mentioned_usernames)
+          text.gsub(Regexp.union(slack_user_mention_codes.keys), slack_user_mention_codes)
+        end
+
+        def extract_usernames text = ''
+          # Extracts the @xxxxx from the given text and returns a list of usernames (only xxxxx parts)
+
+          if text.nil?
+            text = ''
+          end
+
+          # slack usernames may only contain lowercase letters, numbers,
+          # dashes and underscores and must start with a letter or number.
+          text.scan(/@[a-z0-9][a-z0-9_\-]*/).uniq
+          text.scan(/@[a-z0-9][a-z0-9_\-.]*/).uniq.each do |username|
+            # Remove the leading @
+            username.slice!(0)
+          end
+        end
+
+        def to_slack_usernames(usernames)
+          return {} if usernames.empty?
+
+          usernames.map { |username| ['@' + username, find_slack_username(username)] }.to_h
+        end
+
+        def find_slack_username(redmine_user)
+          return nil if redmine_user.nil?
+
+          if redmine_user.is_a? User
+            user = redmine_user
+          else
+            user = User.find_by_login(redmine_user)
+          end
+
+          if user.present?
+            return get_slack_mention_code(user)
+          end
         end
       end
     end

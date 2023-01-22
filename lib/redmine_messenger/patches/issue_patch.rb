@@ -174,7 +174,7 @@ module RedmineMessenger
         def to_slack_usernames(usernames)
           return {} if usernames.empty?
 
-          usernames.map { |username| ['@' + username, find_slack_username(username)] }.to_h
+          usernames.map { |username| ["@#{username}", find_slack_username(username)] }.to_h.compact
         end
 
         def find_slack_username(redmine_user)

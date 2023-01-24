@@ -164,8 +164,7 @@ module RedmineMessenger
 
           # slack usernames may only contain lowercase letters, numbers,
           # dashes and underscores and must start with a letter or number.
-          text.scan(/@[a-z0-9][a-z0-9_\-]*/).uniq
-          text.scan(/@[a-z0-9][a-z0-9_\-.]*/).uniq.each do |username|
+          text.scan(/@[a-z0-9][a-z0-9_\-\.@.]*/).uniq.each do |username|
             # Remove the leading @
             username.slice!(0)
           end
